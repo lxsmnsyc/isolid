@@ -1,0 +1,17 @@
+{
+  "target": "es2018",
+  "entrypoints": {
+    ".": "src/index.ts",
+    "./compiler": "compiler/index.ts",
+    "./client": "client/index.ts",
+    "./server": "server/index.ts",
+    "./animation-frame": "scheduler/on-animation-frame.ts",
+    "./delay": "scheduler/on-delay.ts",
+    "./interaction": "scheduler/on-interaction.ts",
+    "./idle": "scheduler/on-idle.ts",
+    "./load": "scheduler/on-load.ts",
+    "./media": "scheduler/on-media.ts",
+    "./ready-state": "scheduler/on-ready-state.ts",
+    "./visible": "scheduler/on-visible.ts"
+  }
+}
