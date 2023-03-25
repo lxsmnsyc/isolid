@@ -19,7 +19,7 @@
     "@types/node": "^18.15.3",
     "eslint": "^8.36.0",
     "eslint-config-lxsmnsyc": "^0.5.1",
-    "pridepack": "2.4.2",
+    "pridepack": "2.4.4",
     "solid-js": "^1.6.15",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
@@ -32,7 +32,7 @@
     "@babel/traverse": "^7.21.3",
     "@babel/types": "^7.21.3",
     "@types/babel__generator": "^7.6.4",
-    "seroval": "^0.5.0"
+    "seroval": "^0.5.1"
   },
   "peerDependencies": {
     "solid-js": "^1.6"
@@ -74,28 +74,28 @@
       "server": [
         "./dist/types/server/index.d.ts"
       ],
-      "animation-frame": [
+      "scheduler/animation-frame": [
         "./dist/types/scheduler/on-animation-frame.d.ts"
       ],
-      "delay": [
+      "scheduler/delay": [
         "./dist/types/scheduler/on-delay.d.ts"
       ],
-      "interaction": [
+      "scheduler/interaction": [
         "./dist/types/scheduler/on-interaction.d.ts"
       ],
-      "idle": [
+      "scheduler/idle": [
         "./dist/types/scheduler/on-idle.d.ts"
       ],
-      "load": [
+      "scheduler/load": [
         "./dist/types/scheduler/on-load.d.ts"
       ],
-      "media": [
+      "scheduler/media": [
         "./dist/types/scheduler/on-media.d.ts"
       ],
-      "ready-state": [
+      "scheduler/ready-state": [
         "./dist/types/scheduler/on-ready-state.d.ts"
       ],
-      "visible": [
+      "scheduler/visible": [
         "./dist/types/scheduler/on-visible.d.ts"
       ]
     }
@@ -140,76 +140,76 @@
       "import": "./dist/esm/production/server.mjs",
       "types": "./dist/types/server/index.d.ts"
     },
-    "./animation-frame": {
+    "./scheduler/animation-frame": {
       "development": {
-        "require": "./dist/cjs/development/animation-frame.cjs",
-        "import": "./dist/esm/development/animation-frame.mjs"
+        "require": "./dist/cjs/development/scheduler/animation-frame.cjs",
+        "import": "./dist/esm/development/scheduler/animation-frame.mjs"
       },
-      "require": "./dist/cjs/production/animation-frame.cjs",
-      "import": "./dist/esm/production/animation-frame.mjs",
+      "require": "./dist/cjs/production/scheduler/animation-frame.cjs",
+      "import": "./dist/esm/production/scheduler/animation-frame.mjs",
       "types": "./dist/types/scheduler/on-animation-frame.d.ts"
     },
-    "./delay": {
+    "./scheduler/delay": {
       "development": {
-        "require": "./dist/cjs/development/delay.cjs",
-        "import": "./dist/esm/development/delay.mjs"
+        "require": "./dist/cjs/development/scheduler/delay.cjs",
+        "import": "./dist/esm/development/scheduler/delay.mjs"
       },
-      "require": "./dist/cjs/production/delay.cjs",
-      "import": "./dist/esm/production/delay.mjs",
+      "require": "./dist/cjs/production/scheduler/delay.cjs",
+      "import": "./dist/esm/production/scheduler/delay.mjs",
       "types": "./dist/types/scheduler/on-delay.d.ts"
     },
-    "./interaction": {
+    "./scheduler/interaction": {
       "development": {
-        "require": "./dist/cjs/development/interaction.cjs",
-        "import": "./dist/esm/development/interaction.mjs"
+        "require": "./dist/cjs/development/scheduler/interaction.cjs",
+        "import": "./dist/esm/development/scheduler/interaction.mjs"
       },
-      "require": "./dist/cjs/production/interaction.cjs",
-      "import": "./dist/esm/production/interaction.mjs",
+      "require": "./dist/cjs/production/scheduler/interaction.cjs",
+      "import": "./dist/esm/production/scheduler/interaction.mjs",
       "types": "./dist/types/scheduler/on-interaction.d.ts"
     },
-    "./idle": {
+    "./scheduler/idle": {
       "development": {
-        "require": "./dist/cjs/development/idle.cjs",
-        "import": "./dist/esm/development/idle.mjs"
+        "require": "./dist/cjs/development/scheduler/idle.cjs",
+        "import": "./dist/esm/development/scheduler/idle.mjs"
       },
-      "require": "./dist/cjs/production/idle.cjs",
-      "import": "./dist/esm/production/idle.mjs",
+      "require": "./dist/cjs/production/scheduler/idle.cjs",
+      "import": "./dist/esm/production/scheduler/idle.mjs",
       "types": "./dist/types/scheduler/on-idle.d.ts"
     },
-    "./load": {
+    "./scheduler/load": {
       "development": {
-        "require": "./dist/cjs/development/load.cjs",
-        "import": "./dist/esm/development/load.mjs"
+        "require": "./dist/cjs/development/scheduler/load.cjs",
+        "import": "./dist/esm/development/scheduler/load.mjs"
       },
-      "require": "./dist/cjs/production/load.cjs",
-      "import": "./dist/esm/production/load.mjs",
+      "require": "./dist/cjs/production/scheduler/load.cjs",
+      "import": "./dist/esm/production/scheduler/load.mjs",
       "types": "./dist/types/scheduler/on-load.d.ts"
     },
-    "./media": {
+    "./scheduler/media": {
       "development": {
-        "require": "./dist/cjs/development/media.cjs",
-        "import": "./dist/esm/development/media.mjs"
+        "require": "./dist/cjs/development/scheduler/media.cjs",
+        "import": "./dist/esm/development/scheduler/media.mjs"
       },
-      "require": "./dist/cjs/production/media.cjs",
-      "import": "./dist/esm/production/media.mjs",
+      "require": "./dist/cjs/production/scheduler/media.cjs",
+      "import": "./dist/esm/production/scheduler/media.mjs",
       "types": "./dist/types/scheduler/on-media.d.ts"
     },
-    "./ready-state": {
+    "./scheduler/ready-state": {
       "development": {
-        "require": "./dist/cjs/development/ready-state.cjs",
-        "import": "./dist/esm/development/ready-state.mjs"
+        "require": "./dist/cjs/development/scheduler/ready-state.cjs",
+        "import": "./dist/esm/development/scheduler/ready-state.mjs"
       },
-      "require": "./dist/cjs/production/ready-state.cjs",
-      "import": "./dist/esm/production/ready-state.mjs",
+      "require": "./dist/cjs/production/scheduler/ready-state.cjs",
+      "import": "./dist/esm/production/scheduler/ready-state.mjs",
       "types": "./dist/types/scheduler/on-ready-state.d.ts"
     },
-    "./visible": {
+    "./scheduler/visible": {
       "development": {
-        "require": "./dist/cjs/development/visible.cjs",
-        "import": "./dist/esm/development/visible.mjs"
+        "require": "./dist/cjs/development/scheduler/visible.cjs",
+        "import": "./dist/esm/development/scheduler/visible.mjs"
       },
-      "require": "./dist/cjs/production/visible.cjs",
-      "import": "./dist/esm/production/visible.mjs",
+      "require": "./dist/cjs/production/scheduler/visible.cjs",
+      "import": "./dist/esm/production/scheduler/visible.mjs",
       "types": "./dist/types/scheduler/on-visible.d.ts"
     }
   }
