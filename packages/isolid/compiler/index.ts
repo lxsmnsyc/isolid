@@ -25,7 +25,7 @@ export default async function compile(
 ): Promise<CompilerOutput> {
   const parsedPath = parse(id);
   const ctx: StateContext = {
-    basename: parsedPath.base,
+    path: parsedPath,
     virtual: {
       files: new Map(),
       id: 0,
@@ -50,6 +50,11 @@ export default async function compile(
     parserOpts: {
       plugins,
     },
+    filename: parsedPath.base,
+    sourceFileName: id,
+    sourceMaps: true,
+    configFile: false,
+    babelrc: false,
   });
 
   if (!ast) {
@@ -126,7 +131,11 @@ export default async function compile(
   }
 
   return {
-    ...generator(ast),
+    ...generator(ast, {
+      filename: parsedPath.base,
+      sourceMaps: true,
+      sourceFileName: id,
+    }),
     files,
     clients,
   };
