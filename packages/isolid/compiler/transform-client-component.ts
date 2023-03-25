@@ -138,13 +138,10 @@ function getIdentifiersFromLVal(node: t.LVal): string[] {
   }
 }
 
-function createVirtualFile(
+function createVirtualFileName(
   ctx: StateContext,
-  content: string,
-): string {
-  const current = `./${ctx.basename}?isolid=${ctx.virtual.id++}.tsx`;
-  ctx.virtual.files.set(current, content);
-  return current;
+) {
+  return `./${ctx.path.base}?isolid=${ctx.virtual.id++}.tsx`;
 }
 
 function splitFunctionDeclaration(
@@ -218,13 +215,14 @@ function splitFunctionDeclaration(
 
   const moduleDeclarations = moduleDefinitionsToImportDeclarations(moduleBindings);
 
+  const file = createVirtualFileName(ctx);
   const compiled = generator(
     t.program([
       ...moduleDeclarations,
       t.exportDefaultDeclaration(path.node),
     ]),
-  ).code;
-  const file = createVirtualFile(ctx, compiled);
+  );
+  ctx.virtual.files.set(file, compiled.code);
 
   const identifier = path.node.id || path.scope.generateUidIdentifier('DEFAULT');
 
@@ -309,6 +307,7 @@ function splitVariableDeclarator(
   const moduleDeclarations = moduleDefinitionsToImportDeclarations(moduleBindings);
 
   const parent = path.parentPath.node as t.VariableDeclaration;
+  const file = createVirtualFileName(ctx);
   const compiled = generator(
     t.program([
       ...moduleDeclarations,
@@ -319,9 +318,8 @@ function splitVariableDeclarator(
         ),
       ),
     ]),
-  ).code;
-
-  const file = createVirtualFile(ctx, compiled);
+  );
+  ctx.virtual.files.set(file, compiled.code);
   return getIdentifiersFromLVal(path.node.id).map((name) => ({
     kind: 'named',
     local: name,
@@ -437,14 +435,14 @@ function splitComponent(
     );
   }
 
+  const file = createVirtualFileName(ctx);
   const compiled = generator(
     t.program([
       ...moduleDeclarations,
       t.exportDefaultDeclaration(path.node),
     ]),
-  ).code;
-
-  const file = createVirtualFile(ctx, compiled);
+  );
+  ctx.virtual.files.set(file, compiled.code);
   let identifier: t.Identifier;
 
   if (t.isArrowFunctionExpression(path.node) || !path.node.id) {
@@ -491,7 +489,7 @@ export default function transformClientComponent(
       t.callExpression(
         getImportIdentifier(ctx, path, `isolid/${ctx.options.mode}`, '$$client'),
         [
-          t.stringLiteral(`/${target}.js`),
+          t.stringLiteral(target),
           t.identifier(definition.local),
           t.arrowFunctionExpression([], t.arrayExpression(locals)),
         ],
