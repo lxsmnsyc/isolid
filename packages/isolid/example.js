@@ -31,8 +31,10 @@ console.log('Input:');
 console.log(code);
 
 const result = await compile(
-  path.join(process.cwd(),'src/example.tsx'),
+  'src/example.tsx',
   code,
   { mode: 'server' },
 );
-console.log(result);
+console.dir(result, {
+  depth: null
+});
