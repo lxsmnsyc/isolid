@@ -7,10 +7,14 @@ import { CompilerOptions, SplitStateContext } from './types';
 import transformComponent from './transform-component';
 import collectImportIdentifiers from './collect-import-identifiers';
 import assert from '../shared/assert';
+import getIslandCode from './get-island-code';
 
-export interface SplitOutput extends babel.BabelFileResult {
+export interface SplitManifest {
   files: Map<string, string>;
   clients: Map<string, string>;
+}
+
+export interface SplitOutput extends babel.BabelFileResult, SplitManifest {
 }
 
 interface State extends babel.PluginPass {
@@ -101,7 +105,7 @@ export default async function split(
     files.set(join(parsedPath.dir, key), value);
   }
   for (const [key, value] of ctx.clients.targets) {
-    clients.set(key, join(parsedPath.dir, value));
+    clients.set(key, getIslandCode(join(parsedPath.dir, value)));
   }
 
   return {

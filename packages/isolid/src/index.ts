@@ -7,14 +7,22 @@ import {
   ServerProps,
 } from '../shared/types';
 
-export function serverComponent$<P extends SerializableProps>(
+export {
+  SerializableProps,
+  ServerComponent,
+  ServerProps,
+  ClientComponent,
+  ClientProps,
+};
+
+export function serverComponent$<P>(
   Comp: ServerComponent<P>,
 ): ServerComponent<ServerProps<P>> {
   assert(false, 'Unexpected use of serverComponent$');
   return Comp as unknown as ServerComponent<ServerProps<P>>;
 }
 
-export function clientComponent$<P extends SerializableProps>(
+export function clientComponent$<P>(
   Comp: ClientComponent<P>,
 ): ClientComponent<ClientProps<P>> {
   assert(false, 'Unexpected use of clientComponent$');

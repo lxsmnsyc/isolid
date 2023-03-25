@@ -78,16 +78,16 @@ export function $$client<P extends SerializableProps>(
       if (local['client:only']) {
         return () => '';
       }
-      if ('children' in local) {
+      if ('children' in rest) {
         const [result] = createResource(
           () => renderToStringAsync(() => (
             runWithScope(scope(), () => (
-              createComponent(Comp, mergeProps(local, {
+              createComponent(Comp, mergeProps(rest, {
                 get children() {
                   fragment = ssr(
                     FRAGMENT,
                     ssrHydrationKey(),
-                    escape(local.children as string),
+                    escape(rest.children as string),
                   ) as unknown as JSX.Element;
                   return fragment;
                 },
@@ -117,9 +117,7 @@ export function $$client<P extends SerializableProps>(
     const rootRender = getRoot();
 
     const [serializedProps] = createResource(() => serializeAsync(rest));
-
-    const [, strategy] = splitProps(local, ['children']);
-    const [strategyProps] = createResource(() => serializeAsync(strategy));
+    const [strategyProps] = createResource(() => serializeAsync(local));
     const [serializedScope] = createResource(() => serializeAsync(scope()));
 
     return createComponent(Suspense, {

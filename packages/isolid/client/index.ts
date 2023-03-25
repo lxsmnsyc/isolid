@@ -12,7 +12,7 @@ import assert from '../shared/assert';
 import { CLIENT_PROPS, getServerComponentPath, SERVER_PROPS } from '../shared/constants';
 import {
   ClientComponent,
-  ClientHydrationStrategy,
+  ClientSpecialProps,
   ClientProps,
   SerializableProps,
   ServerComponent,
@@ -111,7 +111,7 @@ export function $$client<P extends SerializableProps>(
 }
 
 async function renderRoot(
-  strategy: ClientHydrationStrategy,
+  strategy: ClientSpecialProps,
   marker: Element,
   renderCallback: () => void,
 ): Promise<(() => void) | undefined> {
@@ -154,7 +154,7 @@ type Island<P extends SerializableProps> = (
   id: string,
   hasChildren: boolean,
   props: P,
-  strategy: ClientHydrationStrategy,
+  strategy: ClientSpecialProps,
   scope: AsyncServerValue[],
 ) => Promise<void>;
 

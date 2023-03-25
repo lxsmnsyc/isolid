@@ -65,7 +65,7 @@ function moduleDefinitionToImportSpecifier(definition: ModuleDefinition) {
       return t.importSpecifier(
         t.identifier(definition.local),
         definition.imported
-          ? t.stringLiteral(definition.imported)
+          ? t.identifier(definition.imported)
           : t.identifier(definition.local),
       );
     case 'namespace':

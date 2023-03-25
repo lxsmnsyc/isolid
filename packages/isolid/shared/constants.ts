@@ -14,7 +14,6 @@ export const CLIENT_PROPS: (keyof ClientSpecialProps)[] = [
   'client:only',
   'client:ready-state',
   'client:visible',
-  'children',
 ];
 
 export function getServerComponentPath(id: string) {

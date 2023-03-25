@@ -5,9 +5,7 @@ export type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {};
 
-export type SerializableProps = {
-  [key: Exclude<string, 'children'>]: AsyncServerValue;
-};
+export type SerializableProps = Record<string, AsyncServerValue>;
 
 type OmitAndMerge<L, R> = Prettify<Omit<L, keyof R> & R>;
 
@@ -17,12 +15,12 @@ export type ServerSpecialProps = {
   'server:options': ServerOptions;
 };
 
-export type ServerProps<P extends SerializableProps> = OmitAndMerge<P, ServerSpecialProps>;
+export type ServerProps<P> = OmitAndMerge<P, ServerSpecialProps>;
 
-export type ServerComponent<P extends SerializableProps> =
-  (props: P) => JSX.Element;
+export type ServerComponent<P> =
+  (props: P & { children?: JSX.Element }) => JSX.Element;
 
-export interface ClientHydrationStrategy {
+export interface ClientSpecialProps {
   'client:load'?: boolean;
   'client:visible'?: boolean;
   'client:media'?: string;
@@ -34,16 +32,12 @@ export interface ClientHydrationStrategy {
   'client:ready-state'?: DocumentReadyState;
 }
 
-export interface ClientSpecialProps extends ClientHydrationStrategy {
-  children?: JSX.Element;
-}
+export type ClientProps<P> = OmitAndMerge<P, ClientSpecialProps>;
 
-export type ClientProps<P extends SerializableProps> = OmitAndMerge<P, ClientSpecialProps>;
+export type ClientComponent<P> =
+  (props: P & { children?: JSX.Element }) => JSX.Element;
 
-export type ClientComponent<P extends SerializableProps> =
-  (props: P) => JSX.Element;
-
-export interface ServerComponentData<P extends SerializableProps> {
+export interface ServerComponentData<P> {
   scope: AsyncServerValue[];
   props: P;
 }
