@@ -1,4 +1,5 @@
 import * as t from '@babel/types';
+import { ParsedPath } from 'path';
 
 export type ModuleDefinitionKind = 'named' | 'namespace' | 'default';
 
@@ -14,7 +15,7 @@ export interface CompilerOptions {
 }
 
 export interface StateContext {
-  basename: string;
+  path: ParsedPath;
   virtual: {
     files: Map<string, string>;
     id: number;
