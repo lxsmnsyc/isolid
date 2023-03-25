@@ -1,29 +1,30 @@
-import compile from 'isolid/compiler'
-import path from 'path';
+import compile from './dist/esm/development/compiler.mjs'
 
 // const code = `
 // import { clientComponent$ } from 'isolid';
-// import A from './A';
 
-// function Example() {
-//   const greeting = 'Hello';
-//   const receiver = 'World';
-  
-//   const message = \`\${greeting}, \${receiver}!\`;
-
-//   const IslandA = clientComponent$(() => <A>{message}</A>);
-//   const IslandB = clientComponent$(() => <B>{message}</B>);
-// }
+// const A = clientComponent$(() => (
+//   <h1>{message()}</h1>
+// ));
+// const B = clientComponent$(() => (
+//   <A />
+// ));
+// const C = clientComponent$(() => (
+//   <B />
+// ));
 // `;
 const code = `
 import { clientComponent$ } from 'isolid';
+
 const greeting = 'Hello';
 const receiver = 'World';
-
 const message = () => \`\${greeting}, \${receiver}!\`;
 
-const Example = clientComponent$(() => (
+const C = clientComponent$(() => (
   <h1>{message()}</h1>
+));
+const D = clientComponent$(() => (
+  <C />
 ));
 `;
 
@@ -31,7 +32,7 @@ console.log('Input:');
 console.log(code);
 
 const result = await compile(
-  'src/example.tsx',
+  'src/example.jsx',
   code,
   { mode: 'server' },
 );

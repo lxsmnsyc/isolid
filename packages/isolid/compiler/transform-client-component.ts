@@ -141,7 +141,7 @@ function getIdentifiersFromLVal(node: t.LVal): string[] {
 function createVirtualFileName(
   ctx: StateContext,
 ) {
-  return `./${ctx.path.base}?isolid=${ctx.virtual.id++}.tsx`;
+  return `./${ctx.path.base}?isolid=${ctx.virtual.id++}${ctx.path.ext}`;
 }
 
 function splitFunctionDeclaration(
@@ -176,13 +176,6 @@ function splitFunctionDeclaration(
               const definitions = splitVariableDeclarator(ctx, result.path);
               // Push definition
               moduleBindings.push(...definitions);
-              // Replace declaration with definition
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionsToImportDeclarations(definitions),
-                );
-              }
               // Dedupe
               for (let k = 0, klen = definitions.length; k < klen; k++) {
                 ctx.bindings.set(definitions[k].local, definitions[k]);
@@ -190,12 +183,6 @@ function splitFunctionDeclaration(
             } else if (isPathValid(result.path, t.isFunctionDeclaration)) {
               const definition = splitFunctionDeclaration(ctx, result.path);
               moduleBindings.push(definition);
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionToImportDeclaration(definition),
-                );
-              }
               // Dedupe
               ctx.bindings.set(definition.local, definition);
             }
@@ -224,13 +211,22 @@ function splitFunctionDeclaration(
   );
   ctx.virtual.files.set(file, compiled.code);
 
-  const identifier = path.node.id || path.scope.generateUidIdentifier('DEFAULT');
+  const identifier = path.node.id || path.scope.generateUidIdentifier('fn');
 
-  return {
+  const definition: ModuleDefinition = {
     kind: 'default',
     local: identifier.name,
     source: file,
   };
+  const statement = path.getStatementParent();
+  if (statement) {
+    statement.insertBefore(
+      moduleDefinitionToImportDeclaration(definition),
+    );
+  }
+  path.remove();
+
+  return definition;
 }
 
 function splitVariableDeclarator(
@@ -268,13 +264,6 @@ function splitVariableDeclarator(
               const definitions = splitVariableDeclarator(ctx, result.path);
               // Push definition
               moduleBindings.push(...definitions);
-              // Replace declaration with definition
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionsToImportDeclarations(definitions),
-                );
-              }
               // Dedupe
               for (let k = 0, klen = definitions.length; k < klen; k++) {
                 ctx.bindings.set(definitions[k].local, definitions[k]);
@@ -282,12 +271,6 @@ function splitVariableDeclarator(
             } else if (isPathValid(result.path, t.isFunctionDeclaration)) {
               const definition = splitFunctionDeclaration(ctx, result.path);
               moduleBindings.push(definition);
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionToImportDeclaration(definition),
-                );
-              }
               // Dedupe
               ctx.bindings.set(definition.local, definition);
             }
@@ -320,11 +303,20 @@ function splitVariableDeclarator(
     ]),
   );
   ctx.virtual.files.set(file, compiled.code);
-  return getIdentifiersFromLVal(path.node.id).map((name) => ({
+  const definitions: ModuleDefinition[] = getIdentifiersFromLVal(path.node.id).map((name) => ({
     kind: 'named',
     local: name,
     source: file,
   }));
+  // Replace declaration with definition
+  const statement = path.getStatementParent();
+  if (statement) {
+    statement.insertBefore(
+      moduleDefinitionsToImportDeclarations(definitions),
+    );
+  }
+  path.remove();
+  return definitions;
 }
 
 function splitComponent(
@@ -359,13 +351,6 @@ function splitComponent(
               const definitions = splitVariableDeclarator(ctx, result.path);
               // Push definition
               moduleBindings.push(...definitions);
-              // Replace declaration with definition
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionsToImportDeclarations(definitions),
-                );
-              }
               // Dedupe
               for (let k = 0, klen = definitions.length; k < klen; k++) {
                 ctx.bindings.set(definitions[k].local, definitions[k]);
@@ -373,12 +358,6 @@ function splitComponent(
             } else if (isPathValid(result.path, t.isFunctionDeclaration)) {
               const definition = splitFunctionDeclaration(ctx, result.path);
               moduleBindings.push(definition);
-              const statement = result.path.getStatementParent();
-              if (statement) {
-                statement.insertBefore(
-                  moduleDefinitionToImportDeclaration(definition),
-                );
-              }
               // Dedupe
               ctx.bindings.set(definition.local, definition);
             }
@@ -397,8 +376,6 @@ function splitComponent(
   }
 
   const moduleDeclarations = moduleDefinitionsToImportDeclarations(moduleBindings);
-
-  // TODO add lexical scope
 
   if (localBindings.length) {
     let body: t.Statement[];
@@ -446,7 +423,7 @@ function splitComponent(
   let identifier: t.Identifier;
 
   if (t.isArrowFunctionExpression(path.node) || !path.node.id) {
-    identifier = path.scope.generateUidIdentifier(ctx.options.mode);
+    identifier = path.scope.generateUidIdentifier('island');
   } else {
     identifier = path.node.id;
   }
@@ -495,5 +472,7 @@ export default function transformClientComponent(
         ],
       ),
     );
+
+    path.scope.crawl();
   }
 }

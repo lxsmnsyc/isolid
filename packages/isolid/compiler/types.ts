@@ -28,4 +28,8 @@ export interface StateContext {
     id: number;
   };
   hash: string;
+  identifiers: {
+    server: Set<t.Identifier>;
+    client: Set<t.Identifier>;
+  };
 }

@@ -6,7 +6,6 @@ import { GeneratorResult } from '@babel/generator';
 import { getImportSpecifierName } from './checks';
 import unwrapNode from './unwrap-node';
 import xxHash32 from './xxhash32';
-import generator from './generator-shim';
 import transformClientComponent from './transform-client-component';
 import { CompilerOptions, StateContext } from './types';
 
@@ -16,6 +15,62 @@ const CLIENT_COMPONENT = 'clientComponent$';
 export interface CompilerOutput extends GeneratorResult {
   files: Map<string, string>;
   clients: Map<string, string>;
+}
+
+interface State extends babel.PluginPass {
+  opts: StateContext;
+}
+
+function plugin(): babel.PluginObj<State> {
+  return {
+    name: 'isolid',
+    visitor: {
+      Program: {
+        enter(program, pass) {
+          program.traverse({
+            ImportDeclaration(path) {
+              if (path.node.source.value === 'isolid') {
+                for (let i = 0, len = path.node.specifiers.length; i < len; i++) {
+                  const specifier = path.node.specifiers[i];
+
+                  switch (specifier.type) {
+                    case 'ImportSpecifier':
+                      switch (getImportSpecifierName(specifier)) {
+                        case SERVER_COMPONENT:
+                          pass.opts.identifiers.server.add(specifier.local);
+                          break;
+                        case CLIENT_COMPONENT:
+                          pass.opts.identifiers.client.add(specifier.local);
+                          break;
+                        default:
+                          break;
+                      }
+                      break;
+                    default:
+                      break;
+                  }
+                }
+              }
+            },
+          });
+        },
+      },
+      CallExpression(path, pass) {
+        const identifier = unwrapNode(path.node.callee, t.isIdentifier);
+        if (identifier) {
+          const binding = path.scope.getBindingIdentifier(identifier.name);
+          if (binding) {
+            if (pass.opts.identifiers.server.has(binding)) {
+              // do serverComponent$ transformation
+            }
+            if (pass.opts.identifiers.client.has(binding)) {
+              transformClientComponent(pass.opts, path);
+            }
+          }
+        }
+      },
+    },
+  };
 }
 
 export default async function compile(
@@ -38,6 +93,10 @@ export default async function compile(
       id: 0,
     },
     hash: xxHash32(id).toString(16),
+    identifiers: {
+      server: new Set(),
+      client: new Set(),
+    },
   };
 
   const plugins: babel.ParserOptions['plugins'] = ['jsx'];
@@ -46,79 +105,24 @@ export default async function compile(
     plugins.push('typescript');
   }
 
-  const ast = await babel.parseAsync(code, {
+  const result = await babel.transformAsync(code, {
+    plugins: [
+      [plugin, ctx],
+    ],
     parserOpts: {
       plugins,
     },
     filename: parsedPath.base,
+    ast: false,
     sourceFileName: id,
     sourceMaps: true,
     configFile: false,
     babelrc: false,
   });
 
-  if (!ast) {
+  if (!result) {
     throw new Error('invariant');
   }
-
-  // Collect all import identifiers
-  const serverIdentifiers = new Set<t.Identifier>();
-  const clientIdentifiers = new Set<t.Identifier>();
-  babel.traverse(ast, {
-    ImportDeclaration(path) {
-      if (path.node.source.value === 'isolid') {
-        for (let i = 0, len = path.node.specifiers.length; i < len; i++) {
-          const specifier = path.node.specifiers[i];
-
-          switch (specifier.type) {
-            case 'ImportSpecifier':
-              switch (getImportSpecifierName(specifier)) {
-                case SERVER_COMPONENT:
-                  serverIdentifiers.add(specifier.local);
-                  break;
-                case CLIENT_COMPONENT:
-                  clientIdentifiers.add(specifier.local);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            default:
-              break;
-          }
-        }
-      }
-    },
-  });
-
-  // Transform call expressions
-  babel.traverse(ast, {
-    CallExpression(path) {
-      const identifier = unwrapNode(path.node.callee, t.isIdentifier);
-      if (identifier) {
-        const binding = path.scope.getBindingIdentifier(identifier.name);
-        if (binding) {
-          if (serverIdentifiers.has(binding)) {
-            // do serverComponent$ transformation
-          }
-          if (clientIdentifiers.has(binding)) {
-            transformClientComponent(ctx, path);
-          }
-        }
-      }
-    },
-  });
-
-  babel.traverse(ast, {
-    Program(path) {
-      for (const key of ctx.bindings.keys()) {
-        const binding = path.scope.getBinding(key);
-        if (binding) {
-          binding.path.remove();
-        }
-      }
-    },
-  });
 
   const files = new Map<string, string>();
   const clients = new Map<string, string>();
@@ -131,11 +135,8 @@ export default async function compile(
   }
 
   return {
-    ...generator(ast, {
-      filename: parsedPath.base,
-      sourceMaps: true,
-      sourceFileName: id,
-    }),
+    code: result.code || '',
+    map: result.map || null,
     files,
     clients,
   };
