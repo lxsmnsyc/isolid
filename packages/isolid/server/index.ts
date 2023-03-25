@@ -1,4 +1,4 @@
-import { AsyncServerValue, serializeAsync } from 'seroval';
+import { serializeAsync } from 'seroval';
 import {
   createComponent,
   createResource,
@@ -15,6 +15,8 @@ import {
   ssrAttribute,
   ssrHydrationKey,
 } from 'solid-js/web';
+import { runWithScope } from 'isolid/scope';
+import { ScopedCallback } from '../scope';
 import { CLIENT_PROPS, SERVER_PROPS } from '../shared/constants';
 import {
   ClientComponent,
@@ -27,40 +29,24 @@ import {
 const REGISTRATION = new Map<string, ServerComponent<any>>();
 
 export function $$server<P extends SerializableProps>(
-  id: string,
-  Comp: ServerComponent<P>,
+  registration: ScopedCallback<[props: P], JSX.Element>,
 ): ServerComponent<ServerProps<P>> {
   function ServerComp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
-    return createComponent(Comp, rest as unknown as P);
+    return runWithScope(
+      registration.scope(),
+      () => createComponent(registration.call, rest as unknown as P),
+    );
   }
-  REGISTRATION.set(id, ServerComp);
+  REGISTRATION.set(registration.id, registration.call);
   return ServerComp;
 }
 
 const ROOT = ['<isolid-frame', '><isolid-root>', '</isolid-root><template>', '</template><script type="module">', '</script></isolid-frame>'];
 const FRAGMENT = ['<isolid-fragment', '>', '</isolid-fragment>'];
 
-let SCOPE: AsyncServerValue[];
-
-function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
-  const parent = SCOPE;
-  SCOPE = scope;
-  try {
-    return callback();
-  } finally {
-    SCOPE = parent;
-  }
-}
-
-export function $$scope(): AsyncServerValue[] {
-  return SCOPE!;
-}
-
 export function $$client<P extends SerializableProps>(
-  id: string,
-  Comp: ClientComponent<P>,
-  lexicalScope: () => AsyncServerValue[],
+  registration: ScopedCallback<[props: P], JSX.Element>,
 ): ClientComponent<ClientProps<P>> {
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const root = createUniqueId();
@@ -75,7 +61,7 @@ export function $$client<P extends SerializableProps>(
       if ('children' in local) {
         const [result] = createResource(
           () => renderToStringAsync(() => (
-            createComponent(Comp, mergeProps(local, {
+            createComponent(registration.call, mergeProps(local, {
               get children() {
                 fragment = ssr(
                   FRAGMENT,
@@ -94,7 +80,10 @@ export function $$client<P extends SerializableProps>(
       }
       const [result] = createResource(
         () => renderToStringAsync(() => (
-          runWithScope(lexicalScope(), () => createComponent(Comp, rest as P))
+          runWithScope(
+            registration.scope(),
+            () => createComponent(registration.call, rest as P),
+          )
         ), {
           renderId: root,
         }),
@@ -109,7 +98,7 @@ export function $$client<P extends SerializableProps>(
 
     const [, strategy] = splitProps(local, ['children']);
     const [strategyProps] = createResource(() => serializeAsync(strategy));
-    const [serializedScope] = createResource(() => serializeAsync(lexicalScope()));
+    const [serializedScope] = createResource(() => serializeAsync(registration.scope()));
 
     return createComponent(Suspense, {
       get children() {
@@ -118,7 +107,7 @@ export function $$client<P extends SerializableProps>(
           ssrHydrationKey() + ssrAttribute('root-id', root as unknown as boolean),
           rootRender(),
           fragment,
-          `import m from "/${id}.js";m("${root}",${String('children' in props)},${serializedProps() || ''},${strategyProps() || ''},${serializedScope() || ''});`,
+          `import m from "/${registration.id}.js";m("${root}",${String('children' in props)},${serializedProps() || ''},${strategyProps() || ''},${serializedScope() || ''});`,
         ) as unknown as JSX.Element;
       },
     });

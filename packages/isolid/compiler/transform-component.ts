@@ -2,9 +2,10 @@
 import * as t from '@babel/types';
 import { getImportSpecifierName, isPathValid } from './checks';
 import getForeignBindings, { getNormalBindings } from './get-foreign-bindings';
-import { ModuleDefinition, StateContext } from './types';
+import { ModuleDefinition, SplitStateContext } from './types';
 import generator from './generator-shim';
 import getImportIdentifier from './get-import-identifier';
+import { HIDDEN_CLIENT_COMPONENT, HIDDEN_SERVER_COMPONENT } from './constants';
 
 function getModuleDefinition(
   path: babel.NodePath,
@@ -139,13 +140,13 @@ function getIdentifiersFromLVal(node: t.LVal): string[] {
 }
 
 function createVirtualFileName(
-  ctx: StateContext,
+  ctx: SplitStateContext,
 ) {
   return `./${ctx.path.base}?isolid=${ctx.virtual.id++}${ctx.path.ext}`;
 }
 
 function splitFunctionDeclaration(
-  ctx: StateContext,
+  ctx: SplitStateContext,
   path: babel.NodePath<t.FunctionDeclaration>,
 ): ModuleDefinition {
   // Collect referenced identifiers
@@ -230,7 +231,7 @@ function splitFunctionDeclaration(
 }
 
 function splitVariableDeclarator(
-  ctx: StateContext,
+  ctx: SplitStateContext,
   path: babel.NodePath<t.VariableDeclarator>,
 ): ModuleDefinition[] {
   // Collect referenced identifiers
@@ -320,7 +321,7 @@ function splitVariableDeclarator(
 }
 
 function splitComponent(
-  ctx: StateContext,
+  ctx: SplitStateContext,
   path: babel.NodePath<t.FunctionExpression | t.ArrowFunctionExpression>,
 ): { definition: ModuleDefinition, locals: t.Identifier[] } {
   // Collect referenced identifiers
@@ -408,7 +409,7 @@ function splitComponent(
     moduleDeclarations.unshift(
       t.importDeclaration([
         t.importSpecifier(t.identifier('$$scope'), t.identifier('$$scope')),
-      ], t.stringLiteral(`isolid/${ctx.options.mode}`)),
+      ], t.stringLiteral('isolid/scope')),
     );
   }
 
@@ -438,9 +439,10 @@ function splitComponent(
   };
 }
 
-export default function transformClientComponent(
-  ctx: StateContext,
+export default function transformComponent(
+  ctx: SplitStateContext,
   path: babel.NodePath<t.CallExpression>,
+  isServer: boolean,
 ) {
   // Check if first argument is an arrow function
   const arg = path.get('arguments')[0];
@@ -462,15 +464,26 @@ export default function transformClientComponent(
 
     ctx.clients.targets.set(target, definition.source);
 
-    path.replaceWith(
+    const callback = (ctx.options.mode === 'client' && isServer)
+      ? t.arrowFunctionExpression([], t.nullLiteral())
+      : t.identifier(definition.local);
+
+    arg.replaceWith(
       t.callExpression(
-        getImportIdentifier(ctx, path, `isolid/${ctx.options.mode}`, '$$client'),
+        getImportIdentifier(ctx, path, 'isolid/scope', 'createScope'),
         [
           t.stringLiteral(target),
-          t.identifier(definition.local),
+          callback,
           t.arrowFunctionExpression([], t.arrayExpression(locals)),
         ],
       ),
+    );
+
+    path.node.callee = getImportIdentifier(
+      ctx,
+      path,
+      'isolid',
+      isServer ? HIDDEN_SERVER_COMPONENT : HIDDEN_CLIENT_COMPONENT,
     );
 
     path.scope.crawl();

@@ -1,9 +1,9 @@
 import * as babel from '@babel/core';
 import { addNamed } from '@babel/helper-module-imports';
-import { StateContext } from './types';
+import { CompileStateContext } from './types';
 
 export default function getImportIdentifier(
-  ctx: StateContext,
+  ctx: CompileStateContext,
   path: babel.NodePath,
   source: string,
   name: string,

@@ -1,4 +1,4 @@
-import compile from './dist/esm/development/compiler.mjs'
+import { split } from './dist/esm/development/compiler.mjs'
 
 // const code = `
 // import { clientComponent$ } from 'isolid';
@@ -13,14 +13,11 @@ import compile from './dist/esm/development/compiler.mjs'
 //   <B />
 // ));
 // `;
-const code = `
-import { clientComponent$ } from 'isolid';
-
+const code = `import { serverComponent$, clientComponent$ } from 'isolid';
 const greeting = 'Hello';
 const receiver = 'World';
 const message = () => \`\${greeting}, \${receiver}!\`;
-
-const C = clientComponent$(() => (
+const C = serverComponent$(() => (
   <h1>{message()}</h1>
 ));
 const D = clientComponent$(() => (
@@ -31,11 +28,14 @@ const D = clientComponent$(() => (
 console.log('Input:');
 console.log(code);
 
-const result = await compile(
+const result = await split(
   'src/example.jsx',
   code,
-  { mode: 'server' },
+  { mode: 'client' },
 );
-console.dir(result, {
-  depth: null
-});
+console.log('Output:');
+console.log(result.code);
+console.log('Files:');
+console.log(result.files);
+console.log('Clients:');
+console.log(result.clients);
