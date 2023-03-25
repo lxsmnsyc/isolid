@@ -1,4 +1,4 @@
-import { AsyncServerValue, serializeAsync } from 'seroval';
+import { AsyncServerValue, toJSONAsync } from 'seroval';
 import {
   createComponent,
   createMemo,
@@ -8,9 +8,8 @@ import {
   splitProps,
 } from 'solid-js';
 import { hydrate, render } from 'solid-js/web';
-import { runWithScope } from 'isolid/scope';
-import { ScopedCallback } from '../scope';
-import { CLIENT_PROPS, SERVER_PROPS } from '../shared/constants';
+import assert from '../shared/assert';
+import { CLIENT_PROPS, getServerComponentPath, SERVER_PROPS } from '../shared/constants';
 import {
   ClientComponent,
   ClientHydrationStrategy,
@@ -23,6 +22,23 @@ import {
 import { getFragment, getRoot } from './nodes';
 import processScript from './process-script';
 
+let SCOPE: AsyncServerValue[];
+
+function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
+  const parent = SCOPE;
+  SCOPE = scope;
+  try {
+    return callback();
+  } finally {
+    SCOPE = parent;
+  }
+}
+
+export function $$scope(): AsyncServerValue[] {
+  assert(SCOPE, 'Unexpected use of $$scope');
+  return SCOPE;
+}
+
 function trackAll<P extends SerializableProps>(props: P) {
   for (const key of Object.keys(props)) {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises, no-unused-expressions
@@ -31,7 +47,9 @@ function trackAll<P extends SerializableProps>(props: P) {
 }
 
 export function $$server<P extends SerializableProps>(
-  registration: ScopedCallback<[props: P], JSX.Element>,
+  id: string,
+  _Comp: ServerComponent<P>,
+  scope: () => AsyncServerValue[],
 ): ServerComponent<ServerProps<P>> {
   return function Comp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
@@ -42,10 +60,13 @@ export function $$server<P extends SerializableProps>(
         return [props['server:options'], rest] as const;
       },
       async ([options, restProps]) => {
-        const response = await fetch(registration.id, {
+        const response = await fetch(getServerComponentPath(id), {
           ...(options as ServerOptions),
           method: 'POST',
-          body: await serializeAsync(restProps),
+          body: JSON.stringify(await toJSONAsync({
+            scope: scope(),
+            props: restProps,
+          })),
         });
         if (response.ok) {
           const content = await response.text();
@@ -79,11 +100,13 @@ export function $$server<P extends SerializableProps>(
 }
 
 export function $$client<P extends SerializableProps>(
-  registration: ScopedCallback<[props: P], JSX.Element>,
+  _id: string,
+  Comp: ClientComponent<P>,
+  scope: () => AsyncServerValue[],
 ): ClientComponent<ClientProps<P>> {
-  return function Comp(props: ClientProps<P>): JSX.Element {
+  return function ClientComp(props: ClientProps<P>): JSX.Element {
     const [, rest] = splitProps(props, CLIENT_PROPS);
-    return runWithScope(registration.scope(), () => createComponent(registration.call, rest as P));
+    return runWithScope(scope(), () => createComponent(Comp, rest as P));
   };
 }
 

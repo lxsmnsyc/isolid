@@ -16,3 +16,7 @@ export const CLIENT_PROPS: (keyof ClientSpecialProps)[] = [
   'client:visible',
   'children',
 ];
+
+export function getServerComponentPath(id: string) {
+  return `/__isolid/${id}`;
+}

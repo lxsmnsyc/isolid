@@ -5,52 +5,56 @@ import getForeignBindings, { getNormalBindings } from './get-foreign-bindings';
 import { ModuleDefinition, SplitStateContext } from './types';
 import generator from './generator-shim';
 import getImportIdentifier from './get-import-identifier';
-import { HIDDEN_CLIENT_COMPONENT, HIDDEN_SERVER_COMPONENT } from './constants';
+import {
+  HIDDEN_CLIENT_COMPONENT,
+  HIDDEN_SERVER_COMPONENT,
+  HIDDEN_USE_SCOPE,
+} from './constants';
+import assert from '../shared/assert';
 
 function getModuleDefinition(
   path: babel.NodePath,
 ): ModuleDefinition {
-  if (
+  assert(
     isPathValid(path, t.isImportSpecifier)
     || isPathValid(path, t.isImportDefaultSpecifier)
-    || isPathValid(path, t.isImportNamespaceSpecifier)
-  ) {
-    const parent = path.getStatementParent() as babel.NodePath<t.ImportDeclaration>;
-    const source = parent.node.source.value;
-    switch (path.node.type) {
-      case 'ImportDefaultSpecifier':
+    || isPathValid(path, t.isImportNamespaceSpecifier),
+    'invariant',
+  );
+  const parent = path.getStatementParent() as babel.NodePath<t.ImportDeclaration>;
+  const source = parent.node.source.value;
+  switch (path.node.type) {
+    case 'ImportDefaultSpecifier':
+      return {
+        source,
+        kind: 'default',
+        local: path.node.local.name,
+      };
+    case 'ImportNamespaceSpecifier':
+      return {
+        source,
+        kind: 'namespace',
+        local: path.node.local.name,
+      };
+    case 'ImportSpecifier': {
+      const imported = getImportSpecifierName(path.node);
+      if (imported === 'default') {
         return {
           source,
           kind: 'default',
           local: path.node.local.name,
-        };
-      case 'ImportNamespaceSpecifier':
-        return {
-          source,
-          kind: 'namespace',
-          local: path.node.local.name,
-        };
-      case 'ImportSpecifier': {
-        const imported = getImportSpecifierName(path.node);
-        if (imported === 'default') {
-          return {
-            source,
-            kind: 'default',
-            local: path.node.local.name,
-            imported: '',
-          };
-        }
-        return {
-          source,
-          kind: 'named',
-          local: path.node.local.name,
-          imported,
+          imported: '',
         };
       }
-      default: throw new Error('invariant');
+      return {
+        source,
+        kind: 'named',
+        local: path.node.local.name,
+        imported,
+      };
     }
+    default: throw new Error('invariant');
   }
-  throw new Error('invariant');
 }
 
 function moduleDefinitionToImportSpecifier(definition: ModuleDefinition) {
@@ -399,7 +403,7 @@ function splitComponent(
         [
           t.variableDeclarator(
             t.arrayPattern(localBindings),
-            t.callExpression(t.identifier('$$scope'), []),
+            t.callExpression(t.identifier(HIDDEN_USE_SCOPE), []),
           ),
         ],
       ),
@@ -408,8 +412,8 @@ function splitComponent(
 
     moduleDeclarations.unshift(
       t.importDeclaration([
-        t.importSpecifier(t.identifier('$$scope'), t.identifier('$$scope')),
-      ], t.stringLiteral('isolid/scope')),
+        t.importSpecifier(t.identifier(HIDDEN_USE_SCOPE), t.identifier(HIDDEN_USE_SCOPE)),
+      ], t.stringLiteral('isolid')),
     );
   }
 
@@ -462,28 +466,28 @@ export default function transformComponent(
 
     const target = `${ctx.hash}-${ctx.clients.id++}`;
 
-    ctx.clients.targets.set(target, definition.source);
+    if (!isServer) {
+      ctx.clients.targets.set(target, definition.source);
+    }
 
     const callback = (ctx.options.mode === 'client' && isServer)
       ? t.arrowFunctionExpression([], t.nullLiteral())
       : t.identifier(definition.local);
 
-    arg.replaceWith(
+    path.replaceWith(
       t.callExpression(
-        getImportIdentifier(ctx, path, 'isolid/scope', 'createScope'),
+        getImportIdentifier(
+          ctx,
+          path,
+          'isolid',
+          isServer ? HIDDEN_SERVER_COMPONENT : HIDDEN_CLIENT_COMPONENT,
+        ),
         [
           t.stringLiteral(target),
           callback,
           t.arrowFunctionExpression([], t.arrayExpression(locals)),
         ],
       ),
-    );
-
-    path.node.callee = getImportIdentifier(
-      ctx,
-      path,
-      'isolid',
-      isServer ? HIDDEN_SERVER_COMPONENT : HIDDEN_CLIENT_COMPONENT,
     );
 
     path.scope.crawl();

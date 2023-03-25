@@ -74,9 +74,6 @@
       "server": [
         "./dist/types/server/index.d.ts"
       ],
-      "scope": [
-        "./dist/types/scope/index.d.ts"
-      ],
       "scheduler/animation-frame": [
         "./dist/types/scheduler/on-animation-frame.d.ts"
       ],
@@ -142,15 +139,6 @@
       "require": "./dist/cjs/production/server.cjs",
       "import": "./dist/esm/production/server.mjs",
       "types": "./dist/types/server/index.d.ts"
-    },
-    "./scope": {
-      "development": {
-        "require": "./dist/cjs/development/scope.cjs",
-        "import": "./dist/esm/development/scope.mjs"
-      },
-      "require": "./dist/cjs/production/scope.cjs",
-      "import": "./dist/esm/production/scope.mjs",
-      "types": "./dist/types/scope/index.d.ts"
     },
     "./scheduler/animation-frame": {
       "development": {

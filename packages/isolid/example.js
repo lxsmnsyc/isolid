@@ -1,27 +1,19 @@
 import { split } from './dist/esm/development/compiler.mjs'
 
-// const code = `
-// import { clientComponent$ } from 'isolid';
-
-// const A = clientComponent$(() => (
-//   <h1>{message()}</h1>
-// ));
-// const B = clientComponent$(() => (
-//   <A />
-// ));
-// const C = clientComponent$(() => (
-//   <B />
-// ));
-// `;
-const code = `import { serverComponent$, clientComponent$ } from 'isolid';
+const code = `
+import { serverComponent$, clientComponent$ } from 'isolid';
 const greeting = 'Hello';
 const receiver = 'World';
 const message = () => \`\${greeting}, \${receiver}!\`;
-const C = serverComponent$(() => (
+
+const A = serverComponent$(() => (
   <h1>{message()}</h1>
 ));
-const D = clientComponent$(() => (
-  <C />
+const B = clientComponent$(() => (
+  <A />
+));
+const C = clientComponent$(() => (
+  <B />
 ));
 `;
 

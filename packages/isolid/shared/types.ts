@@ -42,3 +42,8 @@ export type ClientProps<P extends SerializableProps> = OmitAndMerge<P, ClientSpe
 
 export type ClientComponent<P extends SerializableProps> =
   (props: P) => JSX.Element;
+
+export interface ServerComponentData<P extends SerializableProps> {
+  scope: AsyncServerValue[];
+  props: P;
+}

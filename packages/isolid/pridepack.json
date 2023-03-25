@@ -5,7 +5,6 @@
     "./compiler": "compiler/index.ts",
     "./client": "client/index.ts",
     "./server": "server/index.ts",
-    "./scope": "scope/index.ts",
     "./scheduler/animation-frame": "scheduler/on-animation-frame.ts",
     "./scheduler/delay": "scheduler/on-delay.ts",
     "./scheduler/interaction": "scheduler/on-interaction.ts",

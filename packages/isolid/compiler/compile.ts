@@ -5,7 +5,12 @@ import unwrapNode from './unwrap-node';
 import { CompilerOptions, CompileStateContext } from './types';
 import collectImportIdentifiers from './collect-import-identifiers';
 import getImportIdentifier from './get-import-identifier';
-import { HIDDEN_CLIENT_COMPONENT, HIDDEN_SERVER_COMPONENT } from './constants';
+import {
+  HIDDEN_CLIENT_COMPONENT,
+  HIDDEN_SERVER_COMPONENT,
+  HIDDEN_USE_SCOPE,
+} from './constants';
+import assert from '../shared/assert';
 
 export type CompilerOutput = babel.BabelFileResult;
 
@@ -43,6 +48,14 @@ function plugin(): babel.PluginObj<State> {
                 HIDDEN_CLIENT_COMPONENT,
               );
             }
+            if (pass.opts.identifiers.scope.has(binding)) {
+              path.node.callee = getImportIdentifier(
+                pass.opts,
+                path,
+                `isolid/${pass.opts.options.mode}`,
+                HIDDEN_USE_SCOPE,
+              );
+            }
           }
         }
       },
@@ -62,6 +75,7 @@ export default async function compile(
     identifiers: {
       server: new Set(),
       client: new Set(),
+      scope: new Set(),
     },
   };
 
@@ -86,9 +100,7 @@ export default async function compile(
     babelrc: false,
   });
 
-  if (!result) {
-    throw new Error('invariant');
-  }
+  assert(result, 'invariant');
 
   return {
     code: result.code,

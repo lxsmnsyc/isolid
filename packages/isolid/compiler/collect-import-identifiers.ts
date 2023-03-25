@@ -6,6 +6,7 @@ import {
   CLIENT_COMPONENT,
   HIDDEN_SERVER_COMPONENT,
   HIDDEN_CLIENT_COMPONENT,
+  HIDDEN_USE_SCOPE,
 } from './constants';
 import { CompileStateContext } from './types';
 
@@ -29,6 +30,9 @@ export default function collectImportIdentifiers(
                 case CLIENT_COMPONENT:
                 case HIDDEN_CLIENT_COMPONENT:
                   ctx.identifiers.client.add(specifier.local);
+                  break;
+                case HIDDEN_USE_SCOPE:
+                  ctx.identifiers.scope.add(specifier.local);
                   break;
                 default:
                   break;

@@ -6,6 +6,7 @@ import xxHash32 from './xxhash32';
 import { CompilerOptions, SplitStateContext } from './types';
 import transformComponent from './transform-component';
 import collectImportIdentifiers from './collect-import-identifiers';
+import assert from '../shared/assert';
 
 export interface SplitOutput extends babel.BabelFileResult {
   files: Map<string, string>;
@@ -66,6 +67,7 @@ export default async function split(
     identifiers: {
       server: new Set(),
       client: new Set(),
+      scope: new Set(),
     },
   };
 
@@ -90,9 +92,7 @@ export default async function split(
     babelrc: false,
   });
 
-  if (!result) {
-    throw new Error('invariant');
-  }
+  assert(result, 'invariant');
 
   const files = new Map<string, string>();
   const clients = new Map<string, string>();

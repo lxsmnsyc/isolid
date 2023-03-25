@@ -7,8 +7,7 @@
     "server",
     "shared",
     "src",
-    "test",
-    "scope"
+    "test"
   ],
   "compilerOptions": {
     "module": "ESNext",

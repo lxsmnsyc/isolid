@@ -20,6 +20,7 @@ export interface CompileStateContext {
   identifiers: {
     server: Set<t.Identifier>;
     client: Set<t.Identifier>;
+    scope: Set<t.Identifier>;
   };
 }
 
