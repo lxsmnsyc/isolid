@@ -22,8 +22,7 @@ export type ServerProps<P extends SerializableProps> = OmitAndMerge<P, ServerSpe
 export type ServerComponent<P extends SerializableProps> =
   (props: P) => JSX.Element;
 
-export type ClientSpecialProps = {
-  children?: JSX.Element;
+export interface ClientHydrationStrategy {
   'client:load'?: boolean;
   'client:visible'?: boolean;
   'client:media'?: string;
@@ -33,7 +32,11 @@ export type ClientSpecialProps = {
   'client:delay'?: number;
   'client:interaction'?: string[] | boolean;
   'client:ready-state'?: DocumentReadyState;
-};
+}
+
+export interface ClientSpecialProps extends ClientHydrationStrategy {
+  children?: JSX.Element;
+}
 
 export type ClientProps<P extends SerializableProps> = OmitAndMerge<P, ClientSpecialProps>;
 
