@@ -1,0 +1,155 @@
+{
+  "name": "isolid-scheduler",
+  "version": "0.0.0",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "license": "MIT",
+  "keywords": [
+    "pridepack"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.15.3",
+    "eslint": "^8.36.0",
+    "eslint-config-lxsmnsyc": "^0.5.1",
+    "pridepack": "2.4.4",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5",
+    "vitest": "^0.29.7"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "peerDependenciesMeta": {},
+  "scripts": {
+    "prepublishOnly": "pridepack clean && pridepack build",
+    "build": "pridepack build",
+    "type-check": "pridepack check",
+    "lint": "pridepack lint",
+    "clean": "pridepack clean",
+    "watch": "pridepack watch",
+    "start": "pridepack start",
+    "dev": "pridepack dev",
+    "test": "vitest"
+  },
+  "description": "SolidJS components in isolation",
+  "repository": {
+    "url": "https://github.com/lxsmnsyc/isolid.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/lxsmnsyc/isolid/tree/main/packages/scheduler",
+  "bugs": {
+    "url": "https://github.com/lxsmnsyc/isolid/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Alexis Munsayac",
+  "private": false,
+  "typesVersions": {
+    "*": {
+      "animation-frame": [
+        "./dist/types/src/on-animation-frame.d.ts"
+      ],
+      "delay": [
+        "./dist/types/src/on-delay.d.ts"
+      ],
+      "interaction": [
+        "./dist/types/src/on-interaction.d.ts"
+      ],
+      "idle": [
+        "./dist/types/src/on-idle.d.ts"
+      ],
+      "load": [
+        "./dist/types/src/on-load.d.ts"
+      ],
+      "media": [
+        "./dist/types/src/on-media.d.ts"
+      ],
+      "ready-state": [
+        "./dist/types/src/on-ready-state.d.ts"
+      ],
+      "visible": [
+        "./dist/types/src/on-visible.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    "./animation-frame": {
+      "development": {
+        "require": "./dist/cjs/development/animation-frame.cjs",
+        "import": "./dist/esm/development/animation-frame.mjs"
+      },
+      "require": "./dist/cjs/production/animation-frame.cjs",
+      "import": "./dist/esm/production/animation-frame.mjs",
+      "types": "./dist/types/src/on-animation-frame.d.ts"
+    },
+    "./delay": {
+      "development": {
+        "require": "./dist/cjs/development/delay.cjs",
+        "import": "./dist/esm/development/delay.mjs"
+      },
+      "require": "./dist/cjs/production/delay.cjs",
+      "import": "./dist/esm/production/delay.mjs",
+      "types": "./dist/types/src/on-delay.d.ts"
+    },
+    "./interaction": {
+      "development": {
+        "require": "./dist/cjs/development/interaction.cjs",
+        "import": "./dist/esm/development/interaction.mjs"
+      },
+      "require": "./dist/cjs/production/interaction.cjs",
+      "import": "./dist/esm/production/interaction.mjs",
+      "types": "./dist/types/src/on-interaction.d.ts"
+    },
+    "./idle": {
+      "development": {
+        "require": "./dist/cjs/development/idle.cjs",
+        "import": "./dist/esm/development/idle.mjs"
+      },
+      "require": "./dist/cjs/production/idle.cjs",
+      "import": "./dist/esm/production/idle.mjs",
+      "types": "./dist/types/src/on-idle.d.ts"
+    },
+    "./load": {
+      "development": {
+        "require": "./dist/cjs/development/load.cjs",
+        "import": "./dist/esm/development/load.mjs"
+      },
+      "require": "./dist/cjs/production/load.cjs",
+      "import": "./dist/esm/production/load.mjs",
+      "types": "./dist/types/src/on-load.d.ts"
+    },
+    "./media": {
+      "development": {
+        "require": "./dist/cjs/development/media.cjs",
+        "import": "./dist/esm/development/media.mjs"
+      },
+      "require": "./dist/cjs/production/media.cjs",
+      "import": "./dist/esm/production/media.mjs",
+      "types": "./dist/types/src/on-media.d.ts"
+    },
+    "./ready-state": {
+      "development": {
+        "require": "./dist/cjs/development/ready-state.cjs",
+        "import": "./dist/esm/development/ready-state.mjs"
+      },
+      "require": "./dist/cjs/production/ready-state.cjs",
+      "import": "./dist/esm/production/ready-state.mjs",
+      "types": "./dist/types/src/on-ready-state.d.ts"
+    },
+    "./visible": {
+      "development": {
+        "require": "./dist/cjs/development/visible.cjs",
+        "import": "./dist/esm/development/visible.mjs"
+      },
+      "require": "./dist/cjs/production/visible.cjs",
+      "import": "./dist/esm/production/visible.mjs",
+      "types": "./dist/types/src/on-visible.d.ts"
+    }
+  }
+}

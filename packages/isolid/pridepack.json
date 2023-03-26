@@ -4,14 +4,6 @@
     ".": "src/index.ts",
     "./compiler": "compiler/index.ts",
     "./client": "client/index.ts",
-    "./server": "server/index.ts",
-    "./scheduler/animation-frame": "scheduler/on-animation-frame.ts",
-    "./scheduler/delay": "scheduler/on-delay.ts",
-    "./scheduler/interaction": "scheduler/on-interaction.ts",
-    "./scheduler/idle": "scheduler/on-idle.ts",
-    "./scheduler/load": "scheduler/on-load.ts",
-    "./scheduler/media": "scheduler/on-media.ts",
-    "./scheduler/ready-state": "scheduler/on-ready-state.ts",
-    "./scheduler/visible": "scheduler/on-visible.ts"
+    "./server": "server/index.ts"
   }
 }

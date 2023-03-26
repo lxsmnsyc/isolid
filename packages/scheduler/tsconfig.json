@@ -1,6 +1,7 @@
 {
   "exclude": ["node_modules"],
   "include": [
+    "scheduler",
     "compiler",
     "client",
     "server",
