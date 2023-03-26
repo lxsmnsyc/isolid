@@ -1,5 +1,5 @@
 import { clientComponent$ } from 'isolid';
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 
 export default function Main() {
   // This value is only evaluated on the server!
@@ -14,6 +14,10 @@ export default function Main() {
     function decrement() {
       setCount((c) => c - 1);
     }
+
+    onMount(() => {
+      console.log('Counter mounted');
+    });
 
     return (
       <div>
@@ -34,7 +38,7 @@ export default function Main() {
     <main>
       <h1>Counter App</h1>
       <p>{`Counter has an initial state of ${initialValue} generated from the server.`}</p>
-      <Counter client:media="(orientation: portrait)" />
+      <Counter client:interaction />
       <p>This is a server-side paragraph.</p>
     </main>
   );
