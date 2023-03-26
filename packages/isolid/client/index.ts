@@ -1,4 +1,5 @@
-import { AsyncServerValue, toJSONAsync } from 'seroval';
+/* eslint-disable no-underscore-dangle */
+import { ServerValue, toJSON } from 'seroval';
 import {
   createComponent,
   createMemo,
@@ -22,9 +23,9 @@ import {
 import { getFragment, getRoot } from './nodes';
 import processScript from './process-script';
 
-let SCOPE: AsyncServerValue[];
+let SCOPE: ServerValue[];
 
-function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
+function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
   const parent = SCOPE;
   SCOPE = scope;
   try {
@@ -34,7 +35,7 @@ function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
   }
 }
 
-export function $$scope(): AsyncServerValue[] {
+export function $$scope(): ServerValue[] {
   assert(SCOPE, 'Unexpected use of $$scope');
   return SCOPE;
 }
@@ -49,7 +50,7 @@ function trackAll<P extends SerializableProps>(props: P) {
 export function $$server<P extends SerializableProps>(
   id: string,
   _Comp: ServerComponent<P>,
-  scope: () => AsyncServerValue[],
+  scope: () => ServerValue[],
 ): ServerComponent<ServerProps<P>> {
   return function Comp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
@@ -63,9 +64,9 @@ export function $$server<P extends SerializableProps>(
         const response = await fetch(getServerComponentPath(id), {
           ...(options as ServerOptions),
           method: 'POST',
-          body: JSON.stringify(await toJSONAsync({
+          body: JSON.stringify(toJSON({
             scope: scope(),
-            props: restProps,
+            props: restProps as ServerValue,
           })),
         });
         if (response.ok) {
@@ -102,7 +103,7 @@ export function $$server<P extends SerializableProps>(
 export function $$client<P extends SerializableProps>(
   _id: string,
   Comp: ClientComponent<P>,
-  scope: () => AsyncServerValue[],
+  scope: () => ServerValue[],
 ): ClientComponent<ClientProps<P>> {
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const [, rest] = splitProps(props, CLIENT_PROPS);
@@ -116,35 +117,35 @@ async function renderRoot(
   renderCallback: () => void,
 ): Promise<(() => void) | undefined> {
   if (strategy['client:load']) {
-    const call = await import('isolid/scheduler/load') as typeof import('../scheduler/on-load');
+    const call = await import('isolid-scheduler/load');
     return call.default(renderCallback);
   }
   if (strategy['client:visible']) {
-    const call = await import('isolid/scheduler/visible') as typeof import('../scheduler/on-visible');
+    const call = await import('isolid-scheduler/visible');
     return call.default(marker, renderCallback, true);
   }
   if (strategy['client:media'] != null) {
-    const call = await import('isolid/scheduler/media') as typeof import('../scheduler/on-media');
+    const call = await import('isolid-scheduler/media');
     return call.default(strategy['client:media'], renderCallback);
   }
   if (strategy['client:idle']) {
-    const call = await import('isolid/scheduler/idle') as typeof import('../scheduler/on-idle');
+    const call = await import('isolid-scheduler/idle');
     return call.default(renderCallback);
   }
   if (strategy['client:animation-frame']) {
-    const call = await import('isolid/scheduler/animation-frame') as typeof import('../scheduler/on-animation-frame');
+    const call = await import('isolid-scheduler/animation-frame');
     return call.default(renderCallback);
   }
   if (strategy['client:delay'] != null) {
-    const call = await import('isolid/scheduler/delay') as typeof import('../scheduler/on-delay');
+    const call = await import('isolid-scheduler/delay');
     return call.default(strategy['client:delay'], renderCallback);
   }
   if (strategy['client:interaction']) {
-    const call = await import('isolid/scheduler/interaction') as typeof import('../scheduler/on-interaction');
+    const call = await import('isolid-scheduler/interaction');
     return call.default(strategy['client:interaction'], marker, renderCallback);
   }
   if (strategy['client:ready-state']) {
-    const call = await import('isolid/scheduler/ready-state') as typeof import('../scheduler/on-ready-state');
+    const call = await import('isolid-scheduler/ready-state');
     return call.default(strategy['client:ready-state'], renderCallback);
   }
   return undefined;
@@ -155,13 +156,20 @@ type Island<P extends SerializableProps> = (
   hasChildren: boolean,
   props: P,
   strategy: ClientSpecialProps,
-  scope: AsyncServerValue[],
+  scope: ServerValue[],
 ) => Promise<void>;
 
+interface WindowWithIsolid {
+  __ISOLID__: Record<string, Island<any>>;
+}
+
+declare let window: typeof Window & WindowWithIsolid;
+
 export function $$island<P extends SerializableProps>(
+  hash: string,
   source: () => Promise<{ default: ClientComponent<P>}>,
-): Island<P> {
-  return async (id, hasChildren, props, strategy, scope) => {
+) {
+  const island: Island<P> = async (id, hasChildren, props, strategy, scope) => {
     const marker = getRoot(id);
     const Comp = (await source()).default;
 
@@ -196,4 +204,7 @@ export function $$island<P extends SerializableProps>(
       }
     });
   };
+
+  window.__ISOLID__ = window.__ISOLID__ || {};
+  window.__ISOLID__[hash] = island;
 }

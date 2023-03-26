@@ -2,7 +2,8 @@
   "name": "demo",
   "scripts": {
     "dev": "node server",
-    "build:server": "vite build --outDir dist/server --ssr src/root.tsx "
+    "build:server": "vite build --outDir dist/server --ssr src/entry-server.tsx",
+    "build:client": "vite build --outDir dist/client"
   },
   "devDependencies": {
     "eslint": "^8.36.0",

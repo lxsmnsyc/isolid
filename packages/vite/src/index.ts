@@ -1,5 +1,5 @@
 import isolidCompiler, { SplitManifest } from 'isolid/compiler';
-import { Plugin } from 'vite';
+import { normalizePath, Plugin } from 'vite';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import path from 'path';
 import {
@@ -35,7 +35,7 @@ function repushPlugin(plugins: Plugin[], plugin: Plugin, pluginNames: string[]) 
       targetIndex = i;
     }
   }
-  if (baseIndex !== -1 && targetIndex !== -1) {
+  if (baseIndex !== -1 && targetIndex !== -1 && baseIndex < targetIndex) {
     plugins.splice(targetIndex, 1);
     plugins.splice(baseIndex, 0, plugin);
   }
@@ -61,14 +61,29 @@ export default function isolidPlugin(
       config.build = config.build || {};
       config.build.rollupOptions = config.build.rollupOptions || {};
 
-      const isSSR = config.build.ssr || env.mode === 'ssr';
-
-      if (!isSSR) {
-        const rawManifest = await getRawManifest();
-        config.build.rollupOptions.input = getClientEntryPoints(rawManifest);
-        manifest = await loadManifest(rawManifest);
-      } else {
+      if (env.ssrBuild) {
         manifest = createSplitManifest();
+      } else {
+        const rawManifest = await getRawManifest();
+        config.build.rollupOptions.input = Object.assign(
+          config.build.rollupOptions.input || {},
+          getClientEntryPoints(rawManifest),
+        );
+        manifest = await loadManifest(rawManifest);
+
+        if (!Array.isArray(config.build.rollupOptions.output)) {
+          const prev = config.build.rollupOptions.output;
+          config.build.rollupOptions.output = [];
+          if (prev) {
+            config.build.rollupOptions.output.push(prev);
+          }
+        }
+
+        config.build.rollupOptions.output.push({
+          entryFileNames(chunkInfo) {
+            return `${chunkInfo.name}.js`;
+          },
+        });
       }
     },
     configResolved(config) {
@@ -80,6 +95,22 @@ export default function isolidPlugin(
         'solid',
       ]);
     },
+    configureServer(server) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url && /^\/__isolid/i.test(req.url)) {
+          const normalized = normalizePath(process.cwd());
+          const target = path.join('/@fs/', normalized, req.url);
+          const value = await server.transformRequest(target, { ssr: false });
+          res.setHeader('content-type', 'text/javascript');
+          next();
+          res.write(value?.code);
+          res.end();
+        } else {
+          next();
+        }
+      });
+    },
     load(id) {
       if (id.startsWith('\0')) {
         return null;
@@ -87,6 +118,10 @@ export default function isolidPlugin(
       if (/\?isolid/i.test(id)) {
         const replaced = id.split('/').join(path.sep);
         return manifest.files.get(replaced);
+      }
+      if (/__isolid/i.test(id)) {
+        const resolved = path.parse(id).name;
+        return manifest.clients.get(resolved);
       }
       return null;
     },
@@ -112,7 +147,7 @@ export default function isolidPlugin(
 
       return code;
     },
-    async buildEnd() {
+    async generateBundle() {
       await generateManifest(manifest);
     },
   };

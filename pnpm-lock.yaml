@@ -50,6 +50,7 @@ importers:
       '@types/node': ^18.15.3
       eslint: ^8.36.0
       eslint-config-lxsmnsyc: ^0.5.1
+      isolid-scheduler: 0.0.0
       pridepack: 2.4.4
       seroval: ^0.5.1
       solid-js: ^1.6.15
@@ -63,6 +64,7 @@ importers:
       '@babel/traverse': 7.21.3
       '@babel/types': 7.21.3
       '@types/babel__generator': 7.6.4
+      isolid-scheduler: link:../scheduler
       seroval: 0.5.1
     devDependencies:
       '@types/babel__core': 7.20.0
@@ -72,6 +74,24 @@ importers:
       eslint-config-lxsmnsyc: 0.5.1_vgl77cfdswitgr47lm5swmv43m
       pridepack: 2.4.4_a37tusewm2jlajv35tjly5qag4
       solid-js: 1.6.15
+      tslib: 2.5.0
+      typescript: 4.9.5
+      vitest: 0.29.7
+
+  packages/scheduler:
+    specifiers:
+      '@types/node': ^18.15.3
+      eslint: ^8.36.0
+      eslint-config-lxsmnsyc: ^0.5.1
+      pridepack: 2.4.4
+      tslib: ^2.5.0
+      typescript: ^4.9.5
+      vitest: ^0.29.7
+    devDependencies:
+      '@types/node': 18.15.5
+      eslint: 8.36.0
+      eslint-config-lxsmnsyc: 0.5.1_vgl77cfdswitgr47lm5swmv43m
+      pridepack: 2.4.4_a37tusewm2jlajv35tjly5qag4
       tslib: 2.5.0
       typescript: 4.9.5
       vitest: 0.29.7

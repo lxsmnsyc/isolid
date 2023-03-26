@@ -3,7 +3,7 @@ import { SplitManifest } from 'isolid/compiler';
 import { readFile } from 'fs/promises';
 import { outputFile } from './fs';
 
-const ISOLID_DIRECTORY = '.thaler';
+const ISOLID_DIRECTORY = '.isolid';
 const ISOLID_MANIFEST_JSON = `${ISOLID_DIRECTORY}/manifest.json`;
 
 interface RawManifest {
@@ -19,13 +19,13 @@ export async function generateManifest(ctx: SplitManifest): Promise<void> {
 
   let fileIndex = 0;
   for (const [name, content] of ctx.files) {
-    const alias = `.thaler/files/${fileIndex++}${path.extname(name)}`;
+    const alias = `.isolid/files/${fileIndex++}${path.extname(name)}`;
     requests.push(outputFile(alias, content, 'utf-8'));
     fileAliases[name] = alias;
   }
   let clientIndex = 0;
   for (const [name, content] of ctx.clients) {
-    const alias = `.thaler/clients/${clientIndex++}${path.extname(name)}`;
+    const alias = `.isolid/clients/${clientIndex++}.js`;
     requests.push(outputFile(alias, content, 'utf-8'));
     clientAliases[name] = alias;
   }

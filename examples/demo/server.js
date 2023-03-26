@@ -7,17 +7,17 @@ async function createServer() {
   const app = express()
 
   const vite = await createViteServer({
-    server: { middlewareMode: 'ssr' }
-  });
+    server: { middlewareMode: true },
+    appType: 'custom'
+  })
 
   app.use(vite.middlewares)
 
   app.use('*', async (req, res) => {
     const url = req.originalUrl
     try {
-      const { default: render } = await vite.ssrLoadModule('/src/root.tsx')
-      const template = await render();
-      // const html = await vite.transformIndexHtml(url, template);
+      const { default: render } = await vite.ssrLoadModule('/src/entry-server.tsx')
+      const template = render();
       const html = template;
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
     } catch (e) {

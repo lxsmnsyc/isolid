@@ -1,3 +1,4 @@
-export default function getIslandCode(target: string) {
-  return `import{$$island}from'isolid/client';export default $$island(()=>import(${JSON.stringify(target)}))`;
+export default function getIslandCode(id: string, target: string) {
+  return `import{ $$island }from'isolid/client';
+$$island(${JSON.stringify(id)}, ()=>import(${JSON.stringify(target)}));`;
 }

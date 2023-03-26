@@ -1,16 +1,14 @@
-import { AsyncServerValue, serializeAsync } from 'seroval';
+import { ServerValue, serialize } from 'seroval';
 import {
   createComponent,
-  createResource,
   createUniqueId,
   JSX,
   mergeProps,
   splitProps,
-  Suspense,
 } from 'solid-js';
 import {
   escape,
-  renderToStringAsync,
+  renderToString,
   ssr,
   ssrAttribute,
   ssrHydrationKey,
@@ -25,9 +23,9 @@ import {
   ServerProps,
 } from '../shared/types';
 
-let SCOPE: AsyncServerValue[];
+let SCOPE: ServerValue[];
 
-function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
+function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
   const parent = SCOPE;
   SCOPE = scope;
   try {
@@ -37,7 +35,7 @@ function runWithScope<T>(scope: AsyncServerValue[], callback: () => T): T {
   }
 }
 
-export function $$scope(): AsyncServerValue[] {
+export function $$scope(): ServerValue[] {
   assert(SCOPE, 'Unexpected use of $$scope');
   return SCOPE;
 }
@@ -47,7 +45,7 @@ const REGISTRATION = new Map<string, ServerComponent<any>>();
 export function $$server<P extends SerializableProps>(
   id: string,
   Comp: ClientComponent<P>,
-  scope: () => AsyncServerValue[],
+  scope: () => ServerValue[],
 ): ServerComponent<ServerProps<P>> {
   function ServerComp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
@@ -66,7 +64,7 @@ const FRAGMENT = ['<isolid-fragment', '>', '</isolid-fragment>'];
 export function $$client<P extends SerializableProps>(
   id: string,
   Comp: ClientComponent<P>,
-  scope: () => AsyncServerValue[],
+  scope: () => ServerValue[],
 ): ClientComponent<ClientProps<P>> {
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const root = createUniqueId();
@@ -76,60 +74,48 @@ export function $$client<P extends SerializableProps>(
 
     const getRoot = () => {
       if (local['client:only']) {
-        return () => '';
+        return '';
       }
       if ('children' in rest) {
-        const [result] = createResource(
-          () => renderToStringAsync(() => (
-            runWithScope(scope(), () => (
-              createComponent(Comp, mergeProps(rest, {
-                get children() {
-                  fragment = ssr(
-                    FRAGMENT,
-                    ssrHydrationKey(),
-                    escape(rest.children as string),
-                  ) as unknown as JSX.Element;
-                  return fragment;
-                },
-              }) as P)
-            ))
-          ), {
-            renderId: root,
-          }),
-        );
-
-        return result;
-      }
-      const [result] = createResource(
-        () => renderToStringAsync(() => (
-          runWithScope(
-            scope(),
-            () => createComponent(Comp, rest as P),
-          )
+        return renderToString(() => (
+          runWithScope(scope(), () => (
+            createComponent(Comp, mergeProps(rest, {
+              get children() {
+                fragment = ssr(
+                  FRAGMENT,
+                  ssrHydrationKey(),
+                  escape(rest.children as string),
+                ) as unknown as JSX.Element;
+                return fragment;
+              },
+            }) as P)
+          ))
         ), {
           renderId: root,
-        }),
-      );
+        });
+      }
 
-      return result;
+      return renderToString(() => (
+        runWithScope(
+          scope(),
+          () => createComponent(Comp, rest as P),
+        )
+      ), {
+        renderId: root,
+      });
     };
 
-    const rootRender = getRoot();
+    const [, serializable] = splitProps(rest, ['children']);
+    const serializedProps = serialize(serializable as ServerValue);
+    const strategyProps = serialize(local);
+    const serializedScope = serialize(scope());
 
-    const [serializedProps] = createResource(() => serializeAsync(rest));
-    const [strategyProps] = createResource(() => serializeAsync(local));
-    const [serializedScope] = createResource(() => serializeAsync(scope()));
-
-    return createComponent(Suspense, {
-      get children() {
-        return ssr(
-          ROOT,
-          ssrHydrationKey() + ssrAttribute('root-id', root as unknown as boolean),
-          rootRender(),
-          fragment,
-          `import m from "/__isolid/${id}.js";m("${root}",${String('children' in props)},${serializedProps() || ''},${strategyProps() || ''},${serializedScope() || ''});`,
-        ) as unknown as JSX.Element;
-      },
-    });
+    return ssr(
+      ROOT,
+      ssrHydrationKey() + ssrAttribute('root-id', root as unknown as boolean),
+      getRoot(),
+      fragment,
+      `import "/__isolid/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${String('children' in props)},${serializedProps},${strategyProps},${serializedScope});`,
+    ) as unknown as JSX.Element;
   };
 }

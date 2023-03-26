@@ -105,7 +105,7 @@ export default async function split(
     files.set(join(parsedPath.dir, key), value);
   }
   for (const [key, value] of ctx.clients.targets) {
-    clients.set(key, getIslandCode(join(parsedPath.dir, value)));
+    clients.set(key, getIslandCode(key, join(parsedPath.dir, value)));
   }
 
   return {
