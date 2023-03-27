@@ -1,5 +1,5 @@
 import isolidCompiler, { SplitManifest } from 'isolid/compiler';
-import { normalizePath, Plugin } from 'vite';
+import { Plugin } from 'vite';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import path from 'path';
 import {
@@ -44,6 +44,8 @@ function repushPlugin(plugins: Plugin[], plugin: Plugin, pluginNames: string[]) 
 const DEFAULT_INCLUDE = 'src/**/*.{jsx,tsx,ts,js,mjs,cjs}';
 const DEFAULT_EXCLUDE = 'node_modules/**/*.{jsx,tsx,ts,js,mjs,cjs}';
 
+const DEV_CLIENT_PATH = /^\/__isolid\/client\//i;
+
 export default function isolidPlugin(
   options: IsolidPluginOptions = {},
 ): Plugin[] {
@@ -61,7 +63,7 @@ export default function isolidPlugin(
       config.build = config.build || {};
       config.build.rollupOptions = config.build.rollupOptions || {};
 
-      if (env.ssrBuild) {
+      if (env.ssrBuild || env.command === 'serve') {
         manifest = createSplitManifest();
       } else {
         const rawManifest = await getRawManifest();
@@ -98,10 +100,8 @@ export default function isolidPlugin(
     configureServer(server) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       server.middlewares.use(async (req, res, next) => {
-        if (req.url && /^\/__isolid/i.test(req.url)) {
-          const normalized = normalizePath(process.cwd());
-          const target = path.join('/@fs/', normalized, req.url);
-          const value = await server.transformRequest(target, { ssr: false });
+        if (req.url && DEV_CLIENT_PATH.test(req.url)) {
+          const value = await server.transformRequest(req.url, { ssr: false });
           res.setHeader('content-type', 'text/javascript');
           next();
           res.write(value?.code);
@@ -119,7 +119,7 @@ export default function isolidPlugin(
         const replaced = id.split('/').join(path.sep);
         return manifest.files.get(replaced);
       }
-      if (/__isolid/i.test(id)) {
+      if (DEV_CLIENT_PATH.test(id)) {
         const resolved = path.parse(id).name;
         return manifest.clients.get(resolved);
       }

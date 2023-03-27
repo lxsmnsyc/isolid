@@ -115,7 +115,7 @@ export function $$client<P extends SerializableProps>(
       ssrHydrationKey() + ssrAttribute('root-id', root as unknown as boolean),
       getRoot(),
       fragment,
-      `import "/__isolid/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${String('children' in props)},${serializedProps},${strategyProps},${serializedScope});`,
+      `import "/__isolid/client/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${String('children' in props)},${serializedProps},${strategyProps},${serializedScope});`,
     ) as unknown as JSX.Element;
   };
 }

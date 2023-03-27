@@ -17,5 +17,5 @@ export const CLIENT_PROPS: (keyof ClientSpecialProps)[] = [
 ];
 
 export function getServerComponentPath(id: string) {
-  return `/__isolid/${id}`;
+  return `/__isolid/server/${id}`;
 }
