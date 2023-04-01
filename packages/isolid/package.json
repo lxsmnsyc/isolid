@@ -1,6 +1,6 @@
 {
   "name": "isolid",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "files": [
     "dist",
@@ -32,8 +32,8 @@
     "@babel/traverse": "^7.21.3",
     "@babel/types": "^7.21.3",
     "@types/babel__generator": "^7.6.4",
-    "seroval": "^0.5.1",
-    "isolid-scheduler": "0.0.0"
+    "isolid-scheduler": "0.0.1",
+    "seroval": "^0.5.1"
   },
   "peerDependencies": {
     "solid-js": "^1.6"

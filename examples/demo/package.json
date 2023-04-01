@@ -1,6 +1,6 @@
 {
   "name": "demo",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "node server",
@@ -12,12 +12,12 @@
     "eslint-config-lxsmnsyc": "^0.5.1",
     "typescript": "^4",
     "vite": "^4.1.4",
-    "vite-plugin-isolid": "0.0.0",
+    "vite-plugin-isolid": "0.0.1",
     "vite-plugin-solid": "^2.6.1"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "isolid": "0.0.0",
+    "isolid": "0.0.1",
     "solid-js": "^1.6.15"
   }
 }
