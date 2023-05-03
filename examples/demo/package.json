@@ -8,16 +8,16 @@
     "build:client": "vite build --outDir dist/client"
   },
   "devDependencies": {
-    "eslint": "^8.36.0",
-    "eslint-config-lxsmnsyc": "^0.5.1",
-    "typescript": "^4",
-    "vite": "^4.1.4",
+    "eslint": "^8.39.0",
+    "eslint-config-lxsmnsyc": "^0.6.4",
+    "typescript": "^4.9.5",
+    "vite": "^4.3.4",
     "vite-plugin-isolid": "0.0.1",
-    "vite-plugin-solid": "^2.6.1"
+    "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
     "express": "^4.18.2",
     "isolid": "0.0.1",
-    "solid-js": "^1.6.15"
+    "solid-js": "^1.7.4"
   }
 }
