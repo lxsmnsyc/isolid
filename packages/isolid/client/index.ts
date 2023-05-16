@@ -1,17 +1,16 @@
 /* eslint-disable no-underscore-dangle */
-import { ServerValue, toJSON } from 'seroval';
+import { toJSON } from 'seroval';
+import type { JSX } from 'solid-js';
 import {
   createComponent,
   createMemo,
   createResource,
-  JSX,
-  mergeProps,
   splitProps,
 } from 'solid-js';
 import { hydrate, render } from 'solid-js/web';
 import assert from '../shared/assert';
 import { CLIENT_PROPS, getServerComponentPath, SERVER_PROPS } from '../shared/constants';
-import {
+import type {
   ClientComponent,
   ClientSpecialProps,
   ClientProps,
@@ -20,12 +19,10 @@ import {
   ServerOptions,
   ServerProps,
 } from '../shared/types';
-import { getFragment, getRoot } from './nodes';
-import processScript from './process-script';
 
-let SCOPE: ServerValue[];
+let SCOPE: unknown[];
 
-function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
+function runWithScope<T>(scope: unknown[], callback: () => T): T {
   const parent = SCOPE;
   SCOPE = scope;
   try {
@@ -35,14 +32,14 @@ function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
   }
 }
 
-export function $$scope(): ServerValue[] {
+export function $$scope(): unknown[] {
   assert(SCOPE, 'Unexpected use of $$scope');
   return SCOPE;
 }
 
-function trackAll<P extends SerializableProps>(props: P) {
+function trackAll<P extends SerializableProps>(props: P): void {
   for (const key of Object.keys(props)) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises, no-unused-expressions
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     props[key];
   }
 }
@@ -50,7 +47,7 @@ function trackAll<P extends SerializableProps>(props: P) {
 export function $$server<P extends SerializableProps>(
   id: string,
   _Comp: ServerComponent<P>,
-  scope: () => ServerValue[],
+  scope: () => unknown[],
 ): ServerComponent<ServerProps<P>> {
   return function Comp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
@@ -66,7 +63,7 @@ export function $$server<P extends SerializableProps>(
           method: 'POST',
           body: JSON.stringify(toJSON({
             scope: scope(),
-            props: restProps as ServerValue,
+            props: restProps,
           })),
         });
         if (response.ok) {
@@ -96,14 +93,14 @@ export function $$server<P extends SerializableProps>(
         return children;
       }
       return undefined;
-    });
+    }) as unknown as JSX.Element;
   };
 }
 
 export function $$client<P extends SerializableProps>(
   _id: string,
   Comp: ClientComponent<P>,
-  scope: () => ServerValue[],
+  scope: () => unknown[],
 ): ClientComponent<ClientProps<P>> {
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const [, rest] = splitProps(props, CLIENT_PROPS);
@@ -153,10 +150,9 @@ async function renderRoot(
 
 type Island<P extends SerializableProps> = (
   id: string,
-  hasChildren: boolean,
   props: P,
   strategy: ClientSpecialProps,
-  scope: ServerValue[],
+  scope: unknown[],
 ) => Promise<void>;
 
 interface WindowWithIsolid {
@@ -165,35 +161,24 @@ interface WindowWithIsolid {
 
 declare let window: typeof Window & WindowWithIsolid;
 
+function getRoot(id: string): Element {
+  const marker = document.querySelector(`isolid-frame[root-id="${id}"] > isolid-root`);
+  if (marker) {
+    return marker;
+  }
+  throw new Error(`Missing isolid-frame[root-id="${id}"] > isolid-root`);
+}
+
 export function $$island<P extends SerializableProps>(
   hash: string,
-  source: () => Promise<{ default: ClientComponent<P>}>,
-) {
-  const island: Island<P> = async (id, hasChildren, props, strategy, scope) => {
+  source: () => Promise<{ default: ClientComponent<P> }>,
+): void {
+  const island: Island<P> = async (id, props, strategy, scope) => {
     const marker = getRoot(id);
     const Comp = (await source()).default;
 
     await renderRoot(strategy, marker, () => {
-      const root = () => {
-        if (hasChildren) {
-          const fragment = getFragment(id);
-          return runWithScope(scope, () => (
-            createComponent(Comp, mergeProps(props, {
-              get children() {
-                if (fragment) {
-                  const node = fragment.content.firstChild;
-                  if (node) {
-                    processScript(node);
-                    return node;
-                  }
-                }
-                return null;
-              },
-            }) as P & { children?: JSX.Element })
-          ));
-        }
-        return runWithScope(scope, () => createComponent(Comp, props));
-      };
+      const root = (): JSX.Element => runWithScope(scope, () => createComponent(Comp, props));
 
       if (strategy['client:only']) {
         render(root, marker);

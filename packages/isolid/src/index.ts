@@ -1,5 +1,5 @@
 import assert from '../shared/assert';
-import {
+import type {
   ClientComponent,
   ClientProps,
   SerializableProps,
@@ -7,7 +7,7 @@ import {
   ServerProps,
 } from '../shared/types';
 
-export {
+export type {
   SerializableProps,
   ServerComponent,
   ServerProps,

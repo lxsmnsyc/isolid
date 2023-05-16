@@ -1,11 +1,10 @@
-import { ServerValue } from 'seroval';
-import { JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
 
 export type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {};
 
-export type SerializableProps = Record<string, ServerValue>;
+export type SerializableProps = Record<string, unknown>;
 
 type OmitAndMerge<L, R> = Prettify<Omit<L, keyof R> & R>;
 
@@ -35,9 +34,9 @@ export interface ClientSpecialProps {
 export type ClientProps<P> = OmitAndMerge<P, ClientSpecialProps>;
 
 export type ClientComponent<P> =
-  (props: P & { children?: JSX.Element }) => JSX.Element;
+  (props: P) => JSX.Element;
 
 export interface ServerComponentData<P> {
-  scope: ServerValue[];
+  scope: unknown[];
   props: P;
 }

@@ -1,13 +1,11 @@
-import { ServerValue, serialize } from 'seroval';
+import { serialize } from 'seroval';
+import type { JSX } from 'solid-js';
 import {
   createComponent,
   createUniqueId,
-  JSX,
-  mergeProps,
   splitProps,
 } from 'solid-js';
 import {
-  escape,
   renderToString,
   ssr,
   ssrAttribute,
@@ -15,7 +13,7 @@ import {
 } from 'solid-js/web';
 import assert from '../shared/assert';
 import { CLIENT_PROPS, getServerComponentPath, SERVER_PROPS } from '../shared/constants';
-import {
+import type {
   ClientComponent,
   ClientProps,
   SerializableProps,
@@ -23,9 +21,9 @@ import {
   ServerProps,
 } from '../shared/types';
 
-let SCOPE: ServerValue[];
+let SCOPE: unknown[];
 
-function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
+function runWithScope<T>(scope: unknown[], callback: () => T): T {
   const parent = SCOPE;
   SCOPE = scope;
   try {
@@ -35,7 +33,7 @@ function runWithScope<T>(scope: ServerValue[], callback: () => T): T {
   }
 }
 
-export function $$scope(): ServerValue[] {
+export function $$scope(): unknown[] {
   assert(SCOPE, 'Unexpected use of $$scope');
   return SCOPE;
 }
@@ -45,7 +43,7 @@ const REGISTRATION = new Map<string, ServerComponent<any>>();
 export function $$server<P extends SerializableProps>(
   id: string,
   Comp: ClientComponent<P>,
-  scope: () => ServerValue[],
+  scope: () => unknown[],
 ): ServerComponent<ServerProps<P>> {
   function ServerComp(props: ServerProps<P>): JSX.Element {
     const [, rest] = splitProps(props, SERVER_PROPS);
@@ -58,13 +56,12 @@ export function $$server<P extends SerializableProps>(
   return ServerComp;
 }
 
-const ROOT = ['<isolid-frame', '><isolid-root>', '</isolid-root><template>', '</template><script type="module">', '</script></isolid-frame>'];
-const FRAGMENT = ['<isolid-fragment', '>', '</isolid-fragment>'];
+const ROOT = ['<isolid-frame', '><isolid-root>', '</isolid-root><script type="module">', '</script></isolid-frame>'];
 
 export function $$client<P extends SerializableProps>(
   id: string,
   Comp: ClientComponent<P>,
-  scope: () => ServerValue[],
+  scope: () => unknown[],
 ): ClientComponent<ClientProps<P>> {
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const root = createUniqueId();
@@ -72,27 +69,9 @@ export function $$client<P extends SerializableProps>(
 
     let fragment: JSX.Element;
 
-    const getRoot = () => {
+    const getRoot = (): string => {
       if (local['client:only']) {
         return '';
-      }
-      if ('children' in rest) {
-        return renderToString(() => (
-          runWithScope(scope(), () => (
-            createComponent(Comp, mergeProps(rest, {
-              get children() {
-                fragment = ssr(
-                  FRAGMENT,
-                  ssrHydrationKey(),
-                  escape(rest.children as string),
-                ) as unknown as JSX.Element;
-                return fragment;
-              },
-            }) as P)
-          ))
-        ), {
-          renderId: root,
-        });
       }
 
       return renderToString(() => (
@@ -105,8 +84,7 @@ export function $$client<P extends SerializableProps>(
       });
     };
 
-    const [, serializable] = splitProps(rest, ['children']);
-    const serializedProps = serialize(serializable as ServerValue);
+    const serializedProps = serialize(rest);
     const strategyProps = serialize(local);
     const serializedScope = serialize(scope());
 
