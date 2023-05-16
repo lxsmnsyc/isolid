@@ -9,7 +9,7 @@ export default function App(): JSX.Element {
         <script type="module" src="/@vite/client" />
         <title>Solid Server Components</title>
         <style>
-          {'isolid-root, isolid-frame, isolid-fragment { display: contents; }'}
+          {'isolid-island, isolid-frame, isolid-fragment { display: contents; }'}
         </style>
         <HydrationScript />
         <style>

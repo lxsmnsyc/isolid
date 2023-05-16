@@ -162,11 +162,11 @@ interface WindowWithIsolid {
 declare let window: typeof Window & WindowWithIsolid;
 
 function getRoot(id: string): Element {
-  const marker = document.querySelector(`isolid-frame[root-id="${id}"] > isolid-root`);
+  const marker = document.querySelector(`isolid-island[id="${id}"]`);
   if (marker) {
     return marker;
   }
-  throw new Error(`Missing isolid-frame[root-id="${id}"] > isolid-root`);
+  throw new Error(`Missing isolid-island[id="${id}"]`);
 }
 
 export function $$island<P extends SerializableProps>(

@@ -56,7 +56,8 @@ export function $$server<P extends SerializableProps>(
   return ServerComp;
 }
 
-const ROOT = ['<isolid-frame', '><isolid-root>', '</isolid-root><script type="module">', '</script></isolid-frame>'];
+const ROOT = ['<isolid-island', '>', '</isolid-island>'];
+const SCRIPT = ['<script', ' type="module">', '</script>'];
 
 export function $$client<P extends SerializableProps>(
   id: string,
@@ -66,8 +67,6 @@ export function $$client<P extends SerializableProps>(
   return function ClientComp(props: ClientProps<P>): JSX.Element {
     const root = createUniqueId();
     const [local, rest] = splitProps(props, CLIENT_PROPS);
-
-    let fragment: JSX.Element;
 
     const getRoot = (): string => {
       if (local['client:only']) {
@@ -88,12 +87,9 @@ export function $$client<P extends SerializableProps>(
     const strategyProps = serialize(local);
     const serializedScope = serialize(scope());
 
-    return ssr(
-      ROOT,
-      ssrHydrationKey() + ssrAttribute('root-id', root as unknown as boolean),
-      getRoot(),
-      fragment,
-      `import "/__isolid/client/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${serializedProps},${strategyProps},${serializedScope});`,
-    ) as unknown as JSX.Element;
+    return [
+      ssr(ROOT, ssrHydrationKey() + ssrAttribute('id', root as unknown as boolean), getRoot()) as unknown as JSX.Element,
+      ssr(SCRIPT, ssrHydrationKey(), `import "/__isolid/client/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${serializedProps},${strategyProps},${serializedScope});`) as unknown as JSX.Element,
+    ];
   };
 }
