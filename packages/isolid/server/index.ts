@@ -12,7 +12,7 @@ import {
   ssrHydrationKey,
 } from 'solid-js/web';
 import assert from '../shared/assert';
-import { CLIENT_PROPS, getServerComponentPath, SERVER_PROPS } from '../shared/constants';
+import { CLIENT_PROPS, SERVER_PROPS, getServerComponentPath } from '../shared/constants';
 import type {
   ClientComponent,
   ClientProps,
@@ -89,7 +89,7 @@ export function $$client<P extends SerializableProps>(
 
     return [
       ssr(ROOT, ssrHydrationKey() + ssrAttribute('id', root as unknown as boolean), getRoot()) as unknown as JSX.Element,
-      ssr(SCRIPT, ssrHydrationKey(), `import "/__isolid/client/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${serializedProps},${strategyProps},${serializedScope});`) as unknown as JSX.Element,
+      ssr(SCRIPT, ssrHydrationKey(), `import "/__isolid/${id}.js";window.__ISOLID__[${JSON.stringify(id)}]("${root}",${serializedProps},${strategyProps},${serializedScope});`) as unknown as JSX.Element,
     ];
   };
 }

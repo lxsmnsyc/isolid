@@ -11,6 +11,8 @@ async function createServer() {
   if (process.env.NODE_ENV === "production") {
     // Use Vite's built asset in prod mode.
     loadTemplate = () => import("./dist/server/entry-server.mjs");
+    app.use('/__isolid', express.static('./dist/client/__isolid'));
+    app.use('/assets', express.static('./dist/client/assets'));
   } else {
     // Hookup the vite dev server.
     vite = await createViteServer({
@@ -37,6 +39,7 @@ async function createServer() {
   });
 
   app.listen(3000);
+  console.log('Listening at http://localhost:3000')
 }
 
 createServer();
